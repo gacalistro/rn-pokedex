@@ -7,7 +7,16 @@ export default function Page() {
   async function fetchData({ pageParam }) {
     const response = await fetch(pageParam);
 
-    return response.json();
+    const data = await response.json();
+
+    const results = data.results.map((item) => {
+      return {
+        ...item,
+        id: item.url.match(/[^a-z]\d+/g)[0].substring(1),
+      };
+    });
+
+    return { ...data, results };
   }
 
   const { data, fetchNextPage } = useInfiniteQuery({
@@ -28,16 +37,11 @@ export default function Page() {
         As informações mais precisas sobre os Pokémons
       </Text>
 
-      {data && (
+      {pokemons && (
         <FlashList
           data={pokemons}
-          keyExtractor={(item) => item.url.match(/[^a-z]\d+/g)[0].substring(1)}
-          renderItem={({ item }) => (
-            <ItemList
-              name={item.name}
-              id={item.url.match(/[^a-z]\d+/g)[0].substring(1)}
-            />
-          )}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <ItemList name={item.name} id={item.id} />}
           onEndReached={fetchNextPage}
           onEndReachedThreshold={0.1}
           estimatedItemSize={398}
