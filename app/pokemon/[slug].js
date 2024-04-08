@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { Text, View, Image } from "react-native";
+import { Text, View, Image, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { toCapitalize } from "../../utils/toCapitalize";
 import { formatId } from "../../utils/formatId";
@@ -15,7 +15,6 @@ export default function Page() {
 
     const data = await response.json();
 
-    // const abilities = data?.abilities.map((item) => item.ability.name);
     const id = formatId(String(data?.id));
     const name = toCapitalize(data?.name);
     const image = data?.sprites.front_default;
@@ -24,12 +23,14 @@ export default function Page() {
     return { ...data, id, name, image, primary };
   }
 
-  const { data } = useQuery({
+  const { data, isFetching } = useQuery({
     queryKey: ["pokemon"],
     queryFn: getPokemonData,
   });
 
-  return (
+  return isFetching ? (
+    <ActivityIndicator size={44} />
+  ) : (
     <LinearGradient
       colors={[
         "transparent",
@@ -64,12 +65,12 @@ export default function Page() {
             style={{
               paddingHorizontal: 10,
               paddingVertical: 6,
-              borderWidth: 1,
+              borderWidth: 2,
               borderRadius: 16,
-              fontSize: 18,
               borderColor: colorByType(item.type.name),
               color: colorByType(item.type.name),
-              fontWeight: "600",
+              fontSize: 16,
+              fontWeight: "700",
             }}
           >
             {item?.type.name}
@@ -131,7 +132,10 @@ export default function Page() {
 
       <View style={{ gap: 6 }}>
         {data?.abilities.map((item) => (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <View
+            style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+            key={item?.ability.name}
+          >
             {item.is_hidden ? <ZapOff color="black" /> : <Zap color="black" />}
             <Text>{toCapitalize(item?.ability.name)}</Text>
           </View>
